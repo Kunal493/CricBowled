@@ -12,7 +12,8 @@ class ApiService {
       'x-rapidapi-key': '419e740854msh11018c704b8e93bp1d17a1jsn83dc5cc22859',
       'x-rapidapi-host': 'cricbuzz-cricket.p.rapidapi.com'
     };
-
+    final response = await http.get(Uri.parse('https://flutter.github.io/assets-for-api-docs/assets/widgets/falcon.jpg'));
+    return response;
     try {
       final response = await http.get(Uri.parse(url), headers: headers);
       if (response.statusCode == 200) {

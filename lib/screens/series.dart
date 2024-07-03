@@ -97,7 +97,18 @@ class _SeriesPageState extends State<SeriesPage> {
                   children: seriesList.expand<Widget>((series) {
                     var matches = series['matchInfo'] as List<dynamic>;
                     return matches.map<Widget>((match) {
-                      return _buildMatchCard(match);
+                      return FutureBuilder(
+                        future: _buildMatchCard(match),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return CircularProgressIndicator();
+                          } else if (snapshot.hasError) {
+                            return Text('Error: ${snapshot.error}');
+                          } else {
+                            return snapshot.data as Widget;
+                          }
+                        },
+                      );
                     }).toList();
                   }).toList(),
                 );
@@ -128,17 +139,18 @@ class _SeriesPageState extends State<SeriesPage> {
     );
   }
 
-  Widget _buildMatchCard(dynamic match) {
+  Future<Widget> _buildMatchCard(dynamic match) async {
     var team1 = match['team1'] ?? {};
     var team2 = match['team2'] ?? {};
     // var venueInfo = match['venueInfo'] ?? {};
     var matchDesc = match['matchDesc'] ?? 'Unknown Match';
 
-    final team1LogoId = match['team1']?['imageId']?.toString() ?? ''; // Convert to string and provide default value
-    final team2LogoId = match['team2']?['imageId']?.toString() ?? ''; // Convert to string and provide default value
+      final team1LogoId = match['team1']?['imageId']?.toString() ?? '';
+      final team2LogoId = match['team2']?['imageId']?.toString() ?? '';
 
-    final team1LogoBytes = team1LogoId.isNotEmpty ? ApiService.fetchMatchImage(team1LogoId).then((response) => response.bodyBytes) : null;
-    final team2LogoBytes = team2LogoId.isNotEmpty ? ApiService.fetchMatchImage(team2LogoId).then((response) => response.bodyBytes) : null;
+
+      final team1LogoBytes = team1LogoId.isNotEmpty ? await ApiService.fetchMatchImage(team1LogoId).then((response) => response.bodyBytes) : null;
+      final team2LogoBytes = team2LogoId.isNotEmpty ? await ApiService.fetchMatchImage(team2LogoId).then((response) => response.bodyBytes) : null;
 
     return InkWell(
       onTap: () {
@@ -175,12 +187,12 @@ class _SeriesPageState extends State<SeriesPage> {
                           children: [
                             team1LogoBytes != null
                                 ? Image.memory(
-                              match.team1LogoBytes!,
+                              team1LogoBytes,
                               width: constraints.maxWidth * 0.2,
                               height: constraints.maxWidth * 0.2,
                             )
                                 : Image.asset(
-                              'assets/placeholder.png', // Local placeholder image
+                              'assets/images/placeholder.jpg', // Local placeholder image
                               width: constraints.maxWidth * 0.2,
                               height: constraints.maxWidth * 0.2,
                             ),
@@ -212,12 +224,12 @@ class _SeriesPageState extends State<SeriesPage> {
                           children: [
                             team2LogoBytes != null
                                 ? Image.memory(
-                              match.team2LogoBytes!,
+                              team2LogoBytes,
                               width: constraints.maxWidth * 0.2,
                               height: constraints.maxWidth * 0.2,
                             )
                                 : Image.asset(
-                              'assets/placeholder.png', // Local placeholder image
+                              'assets/images/placeholder.jpg', // Local placeholder image
                               width: constraints.maxWidth * 0.2,
                               height: constraints.maxWidth * 0.2,
                             ),
